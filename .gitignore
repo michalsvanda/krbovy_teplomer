@@ -1,0 +1,16 @@
+# ESPHome
+firmware/secrets.yaml
+secrets.yaml
+.esphome/
+**/.esphome/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS / editory
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

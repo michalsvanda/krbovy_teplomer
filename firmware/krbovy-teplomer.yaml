@@ -1,0 +1,51 @@
+# Krbový teploměr – ESP32 + MAX31856 + termočlánek typu K
+#
+# Board: Generic ESP32 Board (Generic)
+# Definition: definitions/boards/generic-esp32/manifest.yaml
+#
+# Přístupové údaje k Wi-Fi se načítají ze souboru secrets.yaml
+# (vzor: secrets.yaml.example – skutečný soubor do gitu nepatří).
+
+esphome:
+  name: krbovy-teplomer
+  friendly_name: Krbovy teplomer
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+logger:
+  level: INFO
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: none
+
+# SPI sběrnice k převodníku MAX31856 (VSPI piny ESP32)
+spi:
+  clk_pin: GPIO18   # CLK  – žlutý
+  miso_pin: GPIO19  # SDO  – modrý
+  mosi_pin: GPIO23  # SDI  – bílý
+
+sensor:
+  - platform: max31856
+    name: "Teplota krbové obestavby"
+    id: teplota_krbu
+    cs_pin: GPIO27  # CS – zelený
+    thermocouple_type: K
+    mains_filter: "50 Hz"
+    update_interval: 5s
+    accuracy_decimals: 1
+    unit_of_measurement: "°C"
+    device_class: temperature
+    state_class: measurement
+
+web_server:
+  port: 80
