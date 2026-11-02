@@ -18,13 +18,14 @@ Tento model je **remix** díla:
 
 ## Provedené změny
 
-- Krabička je prodloužená o 40 mm. V přidaném oddílu je lože pro modul LaskaKit MAX31856 (30 × 24 mm), který se vkládá lícem dolů: boční police se sražením 45°, dorazy a vynechané místo pro svorkovnici.
+- Část pro ESP32 je upravená pro desku LaskaKit IoT ESP-WROOM-32 (55 × 29 mm, 2 × 19 pinů, rozteč řad 25,4 mm). Prostor je o 4 mm delší a v úrovni desky rozšířený na 29,9 mm. Vzdálenější sloupky jsou posunuté na podélnou rozteč 51 mm a zúžené na Ø 2,2 mm, aby vyrovnaly nepřesnost měření. Spáry pro piny jsou prodloužené na 50 mm. Sloupky na straně USB, výřez pro USB a otvory pro tlačítka zůstaly na původním místě.
+- Krabička je prodloužená o dalších 40 mm. V přidaném oddílu je lože pro modul LaskaKit MAX31856 (30 × 24 mm), který se vkládá lícem dolů: boční police se sražením 45°, dorazy a vynechané místo pro svorkovnici.
 - Plné dno pod ESP32 je nahrazené policí tloušťky 2 mm. Pod ní je kabelový prostor pro dupont konektory (20 mm) a ohyb vodičů (6 mm), podepřený podélným žebrem. Celková výška je 31,15 mm.
 - Zadní strana je otevřená a má lepicí lem šířky 4 mm pro montáž na zeď.
 - V pravé boční stěně je U-výřez pro kabel termočlánku. Víčko má jazýček, který ho uzavře na otvor 5,5 × 5 mm, a v límci víčka je pro výřez mezera.
 - V prodloužené části přibyl druhý pár zaklapávacích západek; je to přesná kopie originálu.
 - Víčko má čtyři přítlačné kolíky, které drží modul MAX31856.
-- Původní část pro ESP32 (výřez pro USB, sloupky, spáry pro piny, mřížka a otvory pro tlačítka ve víčku) je beze změn.
+- Výřez pro USB, mřížka a otvory pro tlačítka ve víčku jsou beze změn.
 
 ## Licence
 

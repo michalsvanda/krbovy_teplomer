@@ -29,7 +29,21 @@ import manifold3d as mf
 from manifold3d import Manifold, Mesh
 
 # ---------------- PARAMETRY ----------------
-L        = 40.0   # o kolik se krabička prodlouží (strana proti USB, +Y)
+# deska ESP32 (LaskaKit IoT ESP-WROOM-32, 38 pinů): 55 x 29 mm, je delší než
+# deska, pro kterou byl navržen originál (52 x 28 mm)
+ESP_L    = 55.0   # délka DPS
+ESP_HALF_W = 14.95  # polovina šířky prostoru pro DPS (29 mm + vůle 0.9 mm)
+ESP_HOLE_PITCH = 51.0   # podélná rozteč montážních otvorů (příčná 23.2 = originál)
+ESP_HOLE_X = 11.6       # příčná poloha otvorů (±), shodná s originálem
+ESP_HOLE_Y_USB = -23.4  # otvory na straně USB = původní sloupky (beze změny)
+ESP_EDGE_HOLE = 2.0     # vzdálenost otvoru od hrany DPS (55 - 51) / 2
+ESP_FAR_PEG_D = 2.2     # vzdálené kolíky užší – vyrovnají nepřesnost rozteče ±0.5 mm
+ESP_PEG_TOP = 2.5       # výška kolíků (jako originál)
+# spáry pro 2 x 19 pinů (rozteč řad 25.4 mm), od hrany DPS na straně USB
+ESP_SLOT_X = (11.0, None)   # vnitřní hrana spáry (vnější = stěna)
+ESP_SLOT_FROM, ESP_SLOT_TO = 2.5, 52.5
+ESP_EXTRA = 4.0   # o kolik je část pro ESP delší než v originálu
+L        = ESP_EXTRA + 40.0   # celkové prodloužení krabičky (strana proti USB, +Y)
 DUPONT   = 20.0   # délka pinů + dupont konektorů pod deskou (od spodku DPS)
 BEND     = 6.0    # volné místo pod konektory na ohyb drátů
 SHELF_T  = 2.0    # tloušťka police pod ESP (místo původního plného dna)
@@ -46,7 +60,7 @@ MAX_FACE_Z = 0.0  # výška lícové strany DPS = horní plocha polic (rub DPS m
 TERM_H   = 10.0   # výška svorkovnice KF301 pod DPS
 TERM_ENTRY = 4.5  # střed otvoru svorkovnice pod DPS
 TERM_FREE = 7.0   # ± okolí svorkovnice na hraně DPS bez podpěry
-MAX_Y0   = 27.2   # začátek DPS (za ESP deskou, která končí do y = 26.2)
+MAX_Y0   = 31.0   # začátek DPS modulu (deska ESP končí na y = 29.6, doraz 30.0–31.0)
 MCLR     = 0.4    # vůle kolem DPS modulu
 # výstup termočlánku – v boční stěně (+X) proti svorkovnici
 NOTCH_W  = 5.5    # šířka výřezu pro kabel
@@ -130,7 +144,10 @@ B = stretch_z(B, -4.0, DZ, down=True)      # prohloubení (průřez v z=-4 je ko
 in_end  = INNER_YEND + L
 out_end = OUTER_YEND + L
 OUT_X, OUT_R, IN_X, IN_R, CHAMF = f32(16.55), 2.73, INNER_X, 1.0, 0.5
-Y_SHELL, Y_CAV, Y_POCKET = 25.5, 25.45, 25.6   # za sloupky (končí na y=25.4)
+Y_SHELL, Y_CAV = 25.5, 25.45     # za původními sloupky (končí na y=25.2)
+ESP_Y0 = ESP_HOLE_Y_USB - ESP_EDGE_HOLE            # hrana DPS ESP u USB (-25.4)
+ESP_Y1 = ESP_Y0 + ESP_L                            # vzdálená hrana DPS ESP (29.6)
+Y_POCKET = ESP_Y1 + 0.4                            # konec police pod ESP = začátek oddílu modulu
 
 def far_round(x, y0, y1, r):
     """obdélník ±x, y0..y1, zaoblený jen na vzdáleném konci"""
@@ -159,7 +176,24 @@ y0 = MAX_Y0
 y1 = y0 + MAX_L + MCLR
 TERM_Y = (y0 + y1) / 2                     # střed svorkovnice
 notch = slot_y(TERM_Y, NOTCH_W, IN_X - 1, OUT_X + 1, NOTCH_Z0, TOP_Z + 1)
-B = B - cav - pocket - chamber - notch
+# --- úpravy části pro ESP pro delší desku ---
+# odstranit původní vzdálené kolíky (rozteč 47.2 mm)
+old_pegs = Manifold.batch_boolean([box(sx * 11.6 - 1.8, sx * 11.6 + 1.8, 23.8 - 1.8, 23.8 + 1.8, FLOOR_TOP, 3.5)
+                                   for sx in (-1, 1)], mf.OpType.Add)
+# rozšíření prostoru v úrovni DPS na 29.9 mm (stěna se zde ztenčí na 1.6 mm)
+relief = Manifold.batch_boolean([box(*sorted((sx * 13.3, sx * ESP_HALF_W)), ESP_Y0 - 0.4, Y_POCKET,
+                                     FLOOR_TOP, FLOOR_TOP + 2.0) for sx in (-1, 1)], mf.OpType.Add)  # jen u stěn, mimo kolíky
+# delší spáry pro 19 pinů na každé straně
+slots = Manifold.batch_boolean([box(*sorted((sx * ESP_SLOT_X[0], sx * (IN_X + 0.01))),
+                                    ESP_Y0 + ESP_SLOT_FROM, ESP_Y0 + ESP_SLOT_TO, SHELF_BOT - 1, FLOOR_TOP + 0.5)
+                                for sx in (-1, 1)], mf.OpType.Add)
+B = B - cav - pocket - chamber - notch - old_pegs - relief - slots
+# nové vzdálené kolíky (užší, se sražením nahoře)
+for sx in (-1, 1):
+    r = ESP_FAR_PEG_D / 2
+    peg = Manifold.cylinder(ESP_PEG_TOP - 0.3 - FLOOR_TOP + 0.01, r, r, 32) + \
+          Manifold.cylinder(0.3, r, r - 0.3, 32).translate([0, 0, ESP_PEG_TOP - 0.3 - FLOOR_TOP + 0.01])
+    B = B + peg.translate([sx * ESP_HOLE_X, ESP_HOLE_Y_USB + ESP_HOLE_PITCH, FLOOR_TOP - 0.01])
 
 # podélné žebro pod policí a lepicí lem po obvodu zadní strany
 spine = box(-SPINE_T / 2, SPINE_T / 2, INNER_YSTART - 0.5, Y_POCKET, BOTTOM_Z, SHELF_BOT + 0.01)
@@ -212,7 +246,7 @@ for px in (x0 + 5.0, x1 - 2.0):
 # ================= DRUHÝ PÁR ZÁPADEK =================
 # Oblasti s originálními západkami se zkopírují 1:1 a posunou o SNAP_DY do
 # prodloužené části (tam je průřez krabičky i víčka hladký, takže hranice sedí).
-SNAP_DY = 56.4            # původní háček je na y = -5..0 → nový na y = 51.4..56.4
+SNAP_DY = 60.4            # původní háček je na y = -5..0 → nový na y = 55.4..60.4
 B0, L0 = load(ORIG_BOX), load(ORIG_LID)
 for sx in (-1, 1):
     xa, xb = sorted((sx * 17.0, sx * 13.0))

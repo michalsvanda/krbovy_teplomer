@@ -17,7 +17,7 @@ Wi-Fi teploměr pro vysoké teploty postavený na ESP32 a převodníku **MAX3185
 
 | Ks | Součástka | Poznámka |
 |---:|-----------|----------|
-| 1 | [IoT ESP-WROOM-32 DevKit, CP2102](https://www.laskakit.cz/en/iot-esp-32s-2-4ghz-dual-mode-wifi-bluetooth-rev-1--cp2102/) | 30 pinů, micro-USB, deska cca 55 × 28 mm |
+| 1 | [IoT ESP-WROOM-32 DevKit, CP2102](https://www.laskakit.cz/en/iot-esp-32s-2-4ghz-dual-mode-wifi-bluetooth-rev-1--cp2102/) | 38 pinů (2 × 19), micro-USB, deska 55 × 29 mm |
 | 1 | [LaskaKit MAX31856 – univerzální převodník pro termočlánky](https://www.laskakit.cz/en/univerzalni-modul-prevodniku-pro-termoclanky--max31856--spi/) | SPI, napájení 3,0–3,6 V, deska 30 × 24 mm |
 | 1 | [Termočlánek typu K, 600 °C, sonda 5 × 50 mm, M8, kabel 2 m](https://www.laskakit.cz/en/termoclanek-typu-k-600c-5x50mm-m8-2m/) | |
 | 1 | [Kabel μŠup SPI (JST-SH 6 pin) – dupont samice](https://www.laskakit.cz/en/--sup-spi-jst-sh-6-pin-kabel-dupont-samice/) | propojení MAX31856 ↔ ESP32 |
@@ -37,7 +37,7 @@ flowchart LR
     HA["Home Assistant<br/>(ESPHome API)"]
     WEB["Webový prohlížeč<br/>(port 80)"]
 
-    TC -- "T+ modrý / T− červený<br/>svorkovnice KF301" --> MAX
+    TC -- "T+ červený / T− modrý<br/>svorkovnice KF301" --> MAX
     MAX -- "SPI: SDO, SDI, CLK, CS<br/>kabel μŠup → dupont" --> ESP
     ESP -- "3V3, GND" --> MAX
     PSU -- "5 V" --> ESP
@@ -67,10 +67,10 @@ GPIO18, 19 a 23 jsou výchozí piny sběrnice VSPI na ESP32. Modul MAX31856 snes
 
 | Vodič termočlánku | Svorka MAX31856 |
 |-------------------|-----------------|
-| modrý | T+ |
-| červený | T− |
+| červený | T+ |
+| modrý | T− |
 
-Barevné značení termočlánků se u různých výrobců liší. Pokud teplota při zahřívání sondy klesá, prohoďte vodiče ve svorkovnici.
+Polarita je ověřená v praxi s uvedeným termočlánkem: **červený vodič patří na T+**. Barevné značení termočlánků se ale u různých výrobců liší. Pokud teplota při zahřívání sondy klesá, prohoďte vodiče ve svorkovnici.
 
 ## Firmware (ESPHome)
 
@@ -90,14 +90,15 @@ Doporučená, ale volitelná úprava je zapnout šifrování API (`api: encrypti
 
 ## Krabička
 
-Krabička je remix modelu [ESP32-WROOM-32 (USB-C) Box with Lid](https://www.printables.com/model/711587-esp32-wroom-32-usb-c-box-with-lid) od autora **PLAUK** (licence CC BY 4.0), podrobnosti jsou v části [Licence a autorství](#licence-a-autorství). Část pro ESP32 (výřez pro USB, sloupky, spáry pro piny, zaklapávací víčko s mřížkou a otvory pro tlačítka) zůstala zachovaná. Přibylo:
+Krabička je remix modelu [ESP32-WROOM-32 (USB-C) Box with Lid](https://www.printables.com/model/711587-esp32-wroom-32-usb-c-box-with-lid) od autora **PLAUK** (licence CC BY 4.0), podrobnosti jsou v části [Licence a autorství](#licence-a-autorství). Zachovaný zůstal konec u USB (výřez pro konektor, sloupky na této straně, zaklapávací víčko s mřížkou a otvory pro tlačítka EN a BOOT). Přibylo:
 
-- prodloužení o 40 mm s oddílem pro modul MAX31856, který se vkládá **lícem dolů** (svorkovnice a konektor visí do kabelového prostoru),
+- úprava části pro ESP32 na delší desku 55 × 29 mm: prostor prodloužený o 4 mm a v úrovni desky rozšířený na 29,9 mm, vzdálenější sloupky posunuté na rozteč 51 mm (zúžené na 2,2 mm kvůli nepřesnosti měření) a spáry prodloužené pro 2 × 19 pinů,
+- prodloužení o dalších 40 mm s oddílem pro modul MAX31856, který se vkládá **lícem dolů** (svorkovnice a konektor visí do kabelového prostoru),
 - kabelový prostor pod ESP pro dupont konektory (20 mm) a ohyb vodičů; zadní strana je otevřená a má lepicí lem 4 mm a středové žebro,
 - výřez pro kabel termočlánku v pravé boční stěně (při pohledu shora s USB k sobě) a jazýček ve víčku, který výřez uzavře na otvor 5,5 × 5 mm,
 - druhý pár zaklapávacích západek a přítlačné kolíky ve víčku, které drží modul MAX31856.
 
-Rozměry: 33,1 × 96,8 × 31,2 mm, s víčkem asi 33 mm.
+Rozměry: 33,1 × 100,8 × 31,2 mm, s víčkem asi 33 mm.
 
 ### Tisk
 
@@ -106,12 +107,12 @@ Rozměry: 33,1 × 96,8 × 31,2 mm, s víčkem asi 33 mm.
 | [`enclosure_box.stl`](hardware/enclosure/enclosure_box.stl) | zadní (otevřenou) stranou na podložku, tak jak je uložen | jen od podložky, pod policí pro ESP |
 | [`enclosure_lid.stl`](hardware/enclosure/enclosure_lid.stl) | otočit horní plochou na podložku | nejsou potřeba |
 
-Krabička bude v blízkosti krbu, proto se doporučuje **PETG nebo ASA**, protože PLA měkne už kolem 55 °C. Do horka patří jen sonda termočlánku. Krabici umístěte tam, kde je teplota stabilní a nepřekračuje běžné pokojové hodnoty: kompenzace studeného konce měří teplotu přímo na modulu MAX31856.
+Krabička bude v blízkosti krbu, proto doporučujeme **PETG nebo ASA**, protože PLA měkne už kolem 55 °C. Do horka patří jen sonda termočlánku. Krabici umístěte tam, kde je teplota stabilní a nepřekračuje běžné pokojové hodnoty: kompenzace studeného konce měří teplotu přímo na modulu MAX31856.
 
 ### Montáž
 
 1. ESP32 s nasazenými dupont kabely vložte USB konektorem do výřezu na čele krabičky. Piny projdou spárami do kabelového prostoru.
-2. Kabel termočlánku připojte do svorkovnice (modrý T+, červený T−) a dotáhněte. Šroubky svorkovnice budou po vložení modulu mířit ke zdi.
+2. Kabel termočlánku připojte do svorkovnice (červený T+, modrý T−) a dotáhněte. Šroubky svorkovnice budou po vložení modulu mířit ke zdi.
 3. Modul MAX31856 vložte lícem dolů na boční police tak, aby svorkovnice mířila k výřezu v pravé stěně. Kabel termočlánku vložte shora do výřezu.
 4. Kabel μŠup připojte k modulu a dupont konce k ESP32 podle tabulky zapojení. Vodiče veďte kabelovým prostorem.
 5. Nasaďte víčko, zacvakne se na čtyřech západkách. Při otevírání stlačte pružná raménka na bocích.
@@ -155,7 +156,7 @@ krbovy-teplomer/
 
 Licence projektu:
 
-- **3D modely, dokumentace a obrázky** jsou pod licencí [Creative Commons Uveďte původ-Zachovejte licenci 4.0 Mezinárodní (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/), úplné znění je v [`LICENSE`](LICENSE).
-- **Firmware (ESPHome konfigurace) a skripty** jsou pod licencí [MIT](LICENSE-CODE).
+- **3D modely, dokumentace a obrázky** jsou pod licencí [Creative Commons Uveďte původ-Zachovejte licenci 4.0 Mezinárodní (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/), úplné znění je v [`LICENSE`](LICENSE). Licence CC BY 4.0 původního modelu umožňuje šířit úpravy pod CC BY-SA 4.0, pokud je zachováno uvedení autora originálu.
+- **Firmware (ESPHome konfigurace) a skripty** jsou pod licencí [MIT](LICENSE-CODE), protože licence Creative Commons nejsou určené pro software.
 
 Projekt nemá žádnou vazbu na výrobce použitých součástek ani na autora původního modelu.
